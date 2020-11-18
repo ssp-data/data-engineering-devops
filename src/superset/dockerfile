@@ -1,0 +1,9 @@
+FROM preset/superset
+# Switching to root to install the required packages
+USER root
+
+#install pydruid to connect to druid via superset
+RUN pip install pydruid
+
+# Switching back to using the `superset` user
+USER superset

@@ -1,0 +1,10 @@
+bases:
+- ../../../../base
+
+# namespace to deploy all Resources to
+namespace: jupyter
+
+images:
+  - name: jupyter
+    newName: jupyter
+    newTag: py3.7-spark3-0.0.2

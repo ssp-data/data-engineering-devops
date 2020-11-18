@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: jupyter
+    component: server
+  name: jupyter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter
+      component: server
+  serviceName: jupyter
+  template:
+    metadata:
+      labels:
+        app: jupyter
+        component: server
+      name: jupyter
+    spec:
+      containers:
+      - command:
+        - sh
+        - "-c"
+        - "jupyter notebook --notebook-dir=/opt/notebooks --ip='0.0.0.0'
+          --NotebookApp.token='' --NotebookApp.password='' --port=8888 --no-browser
+          --allow-root"
+        env:
+        - name: MINIO_ACCESS_KEY
+          value: "minio"
+        - name: MINIO_SECRET_KEY
+          value: "miniostorage"
+        - name: MINIO_SECRET_ENDPOINT
+          value: http://192.168.2.128:9000
+        - name: PYSPARK_PYTHON
+          value: "python"
+        - name: PYSPARK_DRIVER_PYTHON
+          value: "python3"
+        - name: PYARROW_IGNORE_TIMEZONE
+          value: 1
+        image: sspaeti/jupyter-anaconda:py3.7-spark3-0.0.2
+        imagePullPolicy: Always #IfNotPresent: this will pull from images locally
+        name: jupyter
+        ports:
+        - containerPort: 8888
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: "/"
+            port: 8888
+          initialDelaySeconds: 60
+        resources:
+          limits:
+            cpu: 2
+            memory: 2Gi
+          requests:
+            cpu: 1
+            memory: 512Mi
+        securityContext:
+          capabilities: {}
+        volumeMounts:
+        - mountPath: "/opt/notebooks"
+          name: data-notebooks
+      serviceAccount: default
+      serviceAccountName: default
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - metadata:
+      name: data-notebooks
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
+      storageClassName: hostpath
+      volumeMode: Filesystem

@@ -1,0 +1,4 @@
+resources:
+- service.yaml
+- statefulset.yaml
+- spark-sa.yaml
