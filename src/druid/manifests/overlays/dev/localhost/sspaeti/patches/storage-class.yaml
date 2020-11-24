@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: druid-zookeeper
+spec:
+  volumeClaimTemplates:
+    - metadata:
+        name: data-pvc
+      spec:
+        storageClassName: "hostpath"
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: druid-historical
+spec:
+  volumeClaimTemplates:
+    - metadata:
+        name: data-pvc
+      spec:
+        storageClassName: "hostpath"
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 2Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: druid-postgresql
+spec:
+  volumeClaimTemplates:
+    - metadata:
+        name: data-pvc
+      spec:
+        storageClassName: "hostpath"
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi

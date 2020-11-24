@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: druid
+data:
+  JAVA_OPTS: "-Dcom.amazonaws.sdk.disableCertChecking=true"
+  DRUID_USE_CONTAINER_IP: "true"
+  AWS_REGION: "us-east-1"
+  druid_emitter: noop
+  druid_emitter_http_recipientBaseUrl: "http://druid_exporter_url:druid_exporter_port/druid"
+  druid_emitter_logging_logLevel: "debug"
+  druid_extensions_loadList: '["druid-basic-security","druid-s3-extensions", "druid-histogram", "druid-datasketches", "druid-lookups-cached-global", "postgresql-metadata-storage", "druid-kafka-indexing-service", "druid-avro-extensions", "druid-parquet-extensions", "druid-stats"]'
+  druid_indexer_logs_directory: "/opt/data/indexing-logs"
+  druid_metadata_storage_type: "postgresql"
+  druid_metadata_storage_connector_connectURI: "jdbc:postgresql://druid-postgresql:5432/druid"
+  druid_metadata_storage_connector_password: "druid"
+  druid_metadata_storage_connector_user: "druid"
+  druid_zk_service_host: "druid-zookeeper-headless:2181"
+  druid_startup_logging_logProperties: "true"
+  druid_zk_paths_base: "/druid"
+  druid_generic_useDefaultValueForNull: "false"
+  druid_storage_type: s3
+  druid_s3_endpoint_url: "http://192.168.2.128:9000" #$MINIO_SECRET_ENDPOINT
+  druid_s3_accessKey:  minio
+  druid_s3_secretKey:  miniostorage
+  #druid_s3_endpoint_signingRegion: "us-east-1"
+  druid_s3_protocol: "http"
+  druid_s3_enablePathStyleAccess: "true"
+  druid_storage_disableAcl: "true"
+  druid_storage_bucket: "druid"
+  druid_storage_baseKey: "data-storage/segments"
+  druid_indexer_logs_type: s3
+  druid_indexer_logs_s3Bucket: "druid"
+  druid_indexer_logs_s3Prefix: "data-storage/indexing-logs"
+  druid_indexer_logs_disableAcl: "true"
+
+  # druid_auth_authenticatorChain: '["BasicAuthenticator"]'
+  # druid_auth_authenticator_BasicAuthenticator_type: "basic"
+  # druid_auth_authenticator_BasicAuthenticator_initialAdminPassword: "druid"
+  # druid_auth_authenticator_BasicAuthenticator_initialInternalClientPassword: "druid"
+  # druid_auth_authenticator_BasicAuthenticator_authorizerName: "BasicAuthorizer"
+  # druid_auth_authenticator_BasicAuthenticator_credentialsValidator_type: "metadata"
+  # druid_auth_authenticator_BasicAuthenticator_skipOnFailure: "false"
+
+  # druid_escalator_type: "basic"
+  # druid_escalator_internalClientUsername: "druid_system"
+  # druid_escalator_internalClientPassword: "druid"
+  # druid_escalator_authorizerName: "BasicAuthorizer"
+
+  # druid_auth_authorizers: '["BasicAuthorizer"]'
+  # druid_auth_authorizer_BasicAuthorizer_type: "basic"

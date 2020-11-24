@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: druid-coordinator
+  labels:
+    app: druid
+    component: coordinator
+spec:
+  type: NodePort #ClusterIP
+  ports:
+    - port: 8081
+      targetPort: 8081
+      protocol: TCP
+      nodePort: 30081 #external IP: localhost:30081
+  selector:
+    app: druid
+    component: coordinator

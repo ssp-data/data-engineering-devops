@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: druid-postgresql
+  labels:
+    app: druid-postgresql
+    component: server
+spec:
+  serviceName: postgresql-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: druid-postgresql
+      component: server
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      name: druid-postgresql
+      labels:
+        app: druid-postgresql
+        component: server
+      annotations:
+        co.elastic.logs/enabled: 'true'
+    spec:
+      containers:
+        - name: druid-postgresql
+          image: postgres:12.2
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_USER
+              value: druid
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: druid-postgresql
+                  key: database-password
+            - name: POSTGRES_DB
+              value: druid
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            exec:
+              command: ["psql", "-w", "-U", "druid", "-d", "druid", "-c", "SELECT 1"]
+            initialDelaySeconds: 15
+            timeoutSeconds: 2
+          livenessProbe:
+            exec:
+              command: ["psql", "-w", "-U", "druid", "-d", "druid", "-c", "SELECT 1"]
+            initialDelaySeconds: 45
+            timeoutSeconds: 2
+          resources:
+            limits:
+              cpu: 0.2
+              memory: 512Mi
+          securityContext:
+            capabilities: {}
+            privileged: false
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: data-pvc
+  volumeClaimTemplates:
+  - metadata:
+      name: data-pvc
+    spec:
+      accessModes:
+        - "ReadWriteOnce"
+      storageClassName: "hostpath"
+      resources:
+        requests:
+          storage: 1Gi #"10Gi"

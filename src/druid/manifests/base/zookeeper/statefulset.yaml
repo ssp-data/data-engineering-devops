@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: druid-zookeeper
+  labels:
+    app: druid-zookeeper
+    component: server
+  annotations:
+    co.elastic.logs/enabled: 'true'
+spec:
+  serviceName: druid-zookeeper-headless
+  replicas: 3
+  selector:
+    matchLabels:
+      app: druid-zookeeper
+      component: server
+  updateStrategy:
+    type: OnDelete
+  template:
+    metadata:
+      labels:
+        app: druid-zookeeper
+        component: server
+      #annotations:
+    spec:
+      terminationGracePeriodSeconds: 1800
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+      containers:
+        - name: zookeeper
+          image: "zookeeper:3.5.8"
+          imagePullPolicy: IfNotPresent
+          command:
+             - "/bin/bash"
+             - "-xec"
+             - "/config-scripts/run"
+          ports:
+            - name: client
+              containerPort: 2181
+              protocol: TCP
+            - name: election
+              containerPort: 3888
+              protocol: TCP
+            - name: server
+              containerPort: 2888
+              protocol: TCP
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - /config-scripts/ok
+            initialDelaySeconds: 60 #20
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 2
+            successThreshold: 1
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - /config-scripts/ready
+            initialDelaySeconds: 60 #20
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 2
+            successThreshold: 1
+          env:
+            - name: ZK_REPLICAS
+              value: "3"
+            - name: JMXAUTH
+              value: "false"
+            - name: JMXDISABLE
+              value: "false"
+            - name: JMXPORT
+              value: "1099"
+            - name: JMXSSL
+              value: "false"
+            - name: ZK_HEAP_SIZE
+              value: "256M" #"1536M"
+            - name: ZK_SYNC_LIMIT
+              value: "5" #"10"
+            - name: ZK_INIT_LIMIT
+              value: "2" #"5"
+            - name: ZK_MAX_CLIENT_CNXNS
+              value: "0"
+          resources:
+            limits:
+              cpu: 0.2
+              memory: 1Gi #2Gi
+            requests:
+              cpu: 0.2 #1
+              memory: 512Mi #1Gi
+          volumeMounts:
+            - name: data-pvc
+              mountPath: /data
+            - name: config-pvc
+              mountPath: /config-scripts
+      volumes:
+        - name: config-pvc
+          configMap:
+            name: zookeeper-cfg
+            defaultMode: 0555
+  volumeClaimTemplates:
+    - metadata:
+        name: data-pvc
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        storageClassName: "hostpath"
+        resources:
+          requests:
+            storage: 512Mi #"5Gi"

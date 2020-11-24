@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: druid-broker
+  labels:
+    app: druid
+    component: broker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: druid
+      component: broker
+  template:
+    metadata:
+      labels:
+        app: druid
+        component: broker
+      annotations:
+        co.elastic.logs/enabled: 'true'
+    spec:
+      containers:
+        - name: druid
+          image: "apache/druid:0.19.0"
+          imagePullPolicy: Always
+          args: [ "broker" ]
+          env:
+          - name: AWS_REGION
+            value: "us-east-1"
+          - name: DRUID_MAXDIRECTMEMORYSIZE
+            value: "1g" #"6g"
+          - name: DRUID_XMS
+            value: "1g" #"18g"
+          - name: DRUID_XMX
+            value: "1g" #"18g"
+          - name: druid_processing_buffer_sizeBytes
+            value: "536870" #"536870912"
+          - name: druid_processing_numMergeBuffers
+            value: "2"
+          - name: druid_processing_numThreads
+            value: "3"
+          - name: druid_server_http_numThreads
+            value: "4" #"40"
+          - name: druid_broker_http_numConnections
+            value: "2" #"20"
+          - name: druid_broker_http_maxQueuedBytes
+            value: "12000" #"12000000"
+          - name: druid_broker_cache_useCache
+            value: "false"
+          - name: druid_broker_cache_populateCache
+            value: "false"
+          - name: druid_cache_sizeInBytes
+            value: "200000" #"2000000000"
+          envFrom:
+            - configMapRef:
+                name: druid
+          ports:
+            - name: http
+              containerPort: 8082
+              protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 60
+            httpGet:
+              path: /status/health
+              port: 8082
+          readinessProbe:
+            initialDelaySeconds: 60
+            httpGet:
+              path: /status/health
+              port: 8082
+          resources:
+            limits:
+              cpu: 1 #8
+              memory: 2Gi #26Gi
+            requests:
+              cpu: 0.5 #7
+              memory: 2Gi #26Gi
+      securityContext: {}

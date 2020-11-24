@@ -1,0 +1,64 @@
+---
+# Source: druid/templates/overlord/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: druid-overlord
+  labels:
+    app: druid
+    component: overlord
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: druid
+      component: overlord
+  template:
+    metadata:
+      labels:
+        app: druid
+        component: overlord
+      annotations:
+        co.elastic.logs/enabled: 'true'
+    spec:
+      containers:
+        - name: druid
+          image: apache/druid:0.19.0
+          imagePullPolicy: Always
+          args: [ "overlord" ]
+          env:
+          - name: DRUID_XMS
+            value: "512m" #"4g"
+          - name: DRUID_XMX
+            value: "512m" #"4g"
+          - name: druid_indexer_queue_startDelay
+            value: "PT5M" #"PT30S"
+          - name: druid_indexer_runner_type
+            value: "remote"
+          - name: druid_indexer_storage_type
+            value: "metadata"
+          envFrom:
+            - configMapRef:
+                name: druid
+          ports:
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 90
+            httpGet:
+              path: /status/health
+              port: 8081
+          readinessProbe:
+            initialDelaySeconds: 90
+            httpGet:
+              path: /status/health
+              port: 8081
+          resources:
+            limits:
+              cpu: 0.5 #4
+              memory: 1Gi #16Gi
+            requests:
+              cpu: 0.5 #3
+              memory: 512Mi #16Gi
+      securityContext: {}

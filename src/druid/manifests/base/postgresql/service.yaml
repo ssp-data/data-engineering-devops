@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: druid-postgresql
+  labels:
+    app: druid-postgresql
+spec:
+  type: NodePort #ClusterIP
+  ports:
+    - name: postgresql
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+      nodePort: 30432
+  selector:
+    app: druid-postgresql
+  sessionAffinity: None

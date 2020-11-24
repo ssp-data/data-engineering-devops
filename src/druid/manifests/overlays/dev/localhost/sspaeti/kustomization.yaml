@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+images:
+  - name: apache/druid
+    newTag: 0.19.0
+    newName: apache/druid
+
+
+bases:
+- ../../../../base
+
+resources:
+## ingress are not used locally. Routes can be achieved in Kind: services with type: NodePort and nodePort: over 30000
+# - router/ingress.yaml
+# - broker/ingress.yaml
+# - coordinator/ingress.yaml
+- configmap.yaml
+
+patchesStrategicMerge:
+- patches/storage-class.yaml
+
+# namespace to deploy all Resources to
+namespace: druid #default
+
+# labels added to all Resources
+commonLabels:
+  project: druid # if app is set to druid it breaks the services
+  env: localhost

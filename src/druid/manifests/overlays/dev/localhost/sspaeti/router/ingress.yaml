@@ -1,0 +1,35 @@
+apiVersion: apps/v1 #route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Validate=false
+  labels:
+    app: druid
+    component: router
+  name: druid-router
+spec:
+  port:
+    targetPort: 8888
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: druid-router
+    weight: 100
+  wildcardPolicy: None
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: druid
+    component: router
+  name: druid-sql
+spec:
+  port:
+    targetPort: 8888
+  to:
+    kind: Service
+    name: druid-router
+    weight: 100
+  wildcardPolicy: None

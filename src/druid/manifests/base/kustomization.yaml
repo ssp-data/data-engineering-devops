@@ -1,0 +1,52 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+images:
+  - name: apache/druid
+    newTag: 0.19.0
+    newName: apache/druid
+
+
+
+# list of Resource Config to be Applied
+resources:
+
+# - persistentVolume/volumes.yaml --> will be done in a seperate initial step to avoid race conditions
+
+- zookeeper/statefulset.yaml
+- zookeeper/service.yaml
+- zookeeper/poddisruptionbudget.yaml
+- zookeeper/config-script.yaml
+
+- postgresql/secret.yaml
+- postgresql/service.yaml
+- postgresql/statefulset.yaml
+
+- broker/deployment.yaml
+- broker/service.yaml
+
+- coordinator/deployment.yaml
+- coordinator/service.yaml
+
+- historical/statefulset.yaml
+- historical/service.yaml
+
+- middleManager/deployment.yaml
+- middleManager/hpa.yaml
+- middleManager/service.yaml
+
+- overlord/deployment.yaml
+- overlord/service.yaml
+
+- router/deployment.yaml
+- router/service.yaml
+
+
+
+# namespace to deploy all Resources to
+namespace: druid
+
+# labels added to all Resources
+commonLabels:
+  project: druid # if app is set to druid it breaks the services
+  env: dev

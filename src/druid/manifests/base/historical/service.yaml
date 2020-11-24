@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: druid-historical
+  labels:
+    app: druid
+    component: historical
+spec:
+  type: NodePort #ClusterIP
+  ports:
+    - port: 8083
+      targetPort: 8083
+      protocol: TCP
+      nodePort: 30083
+  selector:
+    app: druid
+    component: historical

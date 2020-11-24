@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: druid
+    component: historical
+  name: druid-historical
+spec:
+  serviceName: druid-historical
+  replicas: 1 #4
+  selector:
+    matchLabels:
+      app: druid
+      component: historical
+  template:
+    metadata:
+      labels:
+        app: druid
+        component: historical
+      annotations:
+        co.elastic.logs/enabled: 'true'
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app: "druid"
+                  component: "historical"
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+      containers:
+      - name: druid
+        args: [ "historical" ]
+        env:
+        # - name: DRUID_MAXDIRECTMEMORYSIZE
+        #   value: "6g"
+        # - name: DRUID_XMS
+        #   value: "8g"
+        # - name: DRUID_XMX
+        #   value: "8g"
+        - name: DRUID_MAXDIRECTMEMORYSIZE
+          value: "1g" #"6g"
+        - name: DRUID_XMS
+          value: "1g" #"16g"
+        - name: DRUID_XMX
+          value: "1g" #"16g"
+        - name: druid_processing_buffer_sizeBytes
+          value: "536870" #"536870912"
+        - name: druid_processing_numMergeBuffers
+          value: "2"
+        - name: druid_processing_numThreads
+          value: "1" #"3"
+        - name: druid_processing_numThreads
+          value: "1"
+        - name: druid_server_http_numThreads
+          value: "200"
+        - name: druid_segmentCache_locations
+          value: '[{"path": "var/druid/segment-cache", "maxSize": 130000}]' #'[{"path": "var/druid/segment-cache", "maxSize": 130000000000}]'
+        - name: druid_server_maxSize
+          value: "130000" #"130000000000"
+        - name: druid_historical_cache_useCache
+          value: "true"
+        - name: druid_historical_cache_populateCache
+          value: "true"
+        envFrom:
+          - configMapRef:
+              name: druid
+        resources:
+          limits:
+            cpu: 1 #4
+            memory: 3Gi #16Gi
+          requests:
+            cpu: 0.5 #3
+            memory: 3Gi #16Gi
+        livenessProbe:
+          initialDelaySeconds: 90
+          httpGet:
+            path: /status/health
+            port: 8083
+        readinessProbe:
+          initialDelaySeconds: 90
+          httpGet:
+            path: /status/health
+            port: 8083
+        image: "apache/druid:0.19.0"
+        imagePullPolicy: "IfNotPresent"
+        ports:
+        - containerPort: 8083
+          name: http
+        volumeMounts:
+        - mountPath: /var/druid/
+          name: data-pvc
+      volumes:
+        - emptyDir: {}
+          name: data-pvc
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - metadata:
+      name: data-pvc
+    spec:
+      accessModes:
+        - "ReadWriteOnce"
+      storageClassName: "hostpath"
+      resources:
+        requests:
+          storage: "5Gi" #"150Gi"

@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: druid-middle-manager
+  labels:
+    app: druid
+    component: middle-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: druid
+      component: middle-manager
+  template:
+    metadata:
+      labels:
+        app: druid
+        component: middle-manager
+      annotations:
+        co.elastic.logs/enabled: 'true'
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app: "druid"
+                  component: "middle-manager"
+      containers:
+      - name: druid
+        args: [ "middleManager" ]
+        env:
+        - name: DRUID_XMS
+          value: "512m"
+        - name: DRUID_XMX
+          value: "512m"
+        - name: druid_worker_capacity
+          value: "3"
+        - name: druid_server_http_numThreads
+          value: "5" #"60"
+        - name: druid_indexer_fork_property_druid_processing_numThreads
+          value: "1"
+        - name: druid_indexer_fork_property_druid_processing_buffer_sizeBytes
+          value: "104857" #"104857600"
+        - name: druid_indexer_fork_property_druid_processing_numMergeBuffers
+          value: "2"
+        - name: druid_indexer_runner_javaOptsArray
+          value: "[\"-server\", \"-Xms1g\", \"-Xmx1g\", \"-XX:MaxDirectMemorySize=1g\", \"-Duser.timezone=UTC\", \"-Dfile.encoding=UTF-8\", \"-XX:+ExitOnOutOfMemoryError\", \"-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager\", \"-Dcom.amazonaws.sdk.disableCertChecking=true\"]"
+        envFrom:
+          - configMapRef:
+              name: druid
+        resources:
+          limits:
+            cpu: 0.5 #4
+            memory: 2Gi #12Gi
+          requests:
+            cpu: 0.5 #3
+            memory: 1Gi #12Gi
+        livenessProbe:
+          initialDelaySeconds: 90
+          httpGet:
+            path: /status/health
+            port: 8091
+        readinessProbe:
+          initialDelaySeconds: 90
+          httpGet:
+            path: /status/health
+            port: 8091
+        image: "apache/druid:0.19.0"
+        imagePullPolicy: "Always"
+        ports:
+        - containerPort: 8091
+          name: http
+        volumeMounts:
+        - mountPath: /var/druid/
+          name: data-pvc
+      securityContext: {}
+      volumes:
+        - emptyDir: {}
+          name: data-pvc
