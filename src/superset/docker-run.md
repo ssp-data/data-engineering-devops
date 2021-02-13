@@ -5,7 +5,7 @@
 # build docker image
 Because we need to add pydruid for connection to druid.
 ```
-cd $git/open-source-data-engineering/src/superset/
+cd $git/data-engineering-devops/src/superset/
 docker build -t superset/druid .
 ```
 

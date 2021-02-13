@@ -1,6 +1,6 @@
 # 1. Create docker image (only for me)
 ```
-cd $git/open-source-data-engineering/src/notebooks/jupyter-anaconda/docker/
+cd $git/data-engineering-devops/src/notebooks/jupyter-anaconda/docker/
 docker build -t sspaeti/jupyter-anaconda:py3.7-spark3-0.0.2 .
 docker push
 ```
@@ -29,13 +29,13 @@ kubectl config set-context docker-desktop --namespace=jupyter
 ```
 ### create perstisten volumes
 ```
-cd $git/open-source-data-engineering/src/notebooks/jupyter-anaconda
+cd $git/data-engineering-devops/src/notebooks/jupyter-anaconda
 kubectl apply -f manifests/base/volume.yaml
 ```
 
 # 3. jupyter-anaconda-deployment
 ```
-cd $git/open-source-data-engineering/src/notebooks/jupyter-anaconda
+cd $git/data-engineering-devops/src/notebooks/jupyter-anaconda
 kubectl apply -k manifests/overlays/dev/localhost/anaconda/
 kubectl delete -k manifests/overlays/dev/localhost/anaconda/
 ```

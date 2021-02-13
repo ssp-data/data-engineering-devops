@@ -22,7 +22,7 @@ kubectl config set-context docker-desktop --namespace=druid
 ```
 ### create perstisten volumes
 ```
-cd $git/open-source-data-engineering/src/druid
+cd $git/data-engineering-devops/src/druid
 kubectl apply -f  manifests/base/persistentVolume/volumes.yaml
 ```
 ## deletion
@@ -39,7 +39,7 @@ kubectl edit pv <name-of-pv> #and then deltete the finalizer line and the coresp
 
 # 2. druid-deployment
 ```
-cd $git/open-source-data-engineering/src/druid
+cd $git/data-engineering-devops/src/druid
 kubectl apply -k manifests/overlays/dev/localhost/sspaeti
 kubectl delete -k manifests/overlays/dev/localhost/sspaeti
 ```

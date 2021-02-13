@@ -21,6 +21,9 @@ Dashboard available at:
 http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/.
 
 get access token:
+`kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')`
+
+or step by step:
 1. kubectl get secrets
 NAME                  TYPE                                  DATA   AGE
 default-token-q56jg   kubernetes.io/service-account-token   3      4d6h
